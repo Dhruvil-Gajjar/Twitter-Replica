@@ -237,5 +237,16 @@ def follow_user(follow_id):
         return redirect(url_for('login'))
 
 
+@app.route("<post_id>/delete-post", methods=["POST", "GET"])
+def follow_user(post_id):
+    if request_user["is_logged_in"]:
+        key = client.key(request_user["uid"], post_id)
+        entity = datastore.Entity(key=key)
+        client.put(entity)
+        # return redirect as per need
+    else:
+        return redirect(url_for('login'))
+
+    
 if __name__ == "__main__":
     app.run(debug=True)
