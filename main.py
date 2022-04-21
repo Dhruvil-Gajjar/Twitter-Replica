@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
+from flask import Flask, redirect, render_template, request, url_for
 from DB import client, datastore
 from Auth import auth, db, request_user
 from utils import get_profile_details, get_post_details
@@ -146,7 +146,7 @@ def edit_profile():
             })
             client.put(entity)
         else:
-            profile_details = get_profile_details()
+            profile_details = get_profile_details(request_user["uid"])
             return render_template("create_post.html", profile_detail=profile_details)
     else:
         return redirect(url_for('login'))
@@ -202,6 +202,37 @@ def edit_post(user_id, post_id):
         else:
             post_details = get_post_details(post_id)
             return render_template("edit_post.html", post_detail=post_details)
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route("<follow_id>/follow-user", methods=["POST", "GET"])
+def follow_user(follow_id):
+    if request_user["is_logged_in"]:
+        request_user_details = get_profile_details(request_user["uid"])
+        follow_user_details = get_profile_details(follow_id)
+        
+        request_user_following = request_user_details.get("following")
+        list(set(request_user_following.append({
+            "user_id": follow_user_details.get("user_id"),
+            "user_name": follow_user_details.get("user_name")
+        })))
+        
+        follow_user_followers = follow_user_details.get("followers")
+        list(set(follow_user_followers.append({
+            "user_id": request_user_details.get("user_id"),
+            "user_name": request_user_details.get("user_name")
+        })))
+        
+        request_user_key = client.key(request_user["uid"], "profile")
+        request_user_entity = datastore.Entity(key=request_user_key)
+        request_user_entity.update(request_user_details)
+        client.put(request_user_entity)
+
+        follow_user_key = client.key(request_user["uid"], "profile")
+        follow_user_entity = datastore.Entity(key=follow_user_key)
+        follow_user_entity.update(follow_user_details)
+        client.put(follow_user_entity)
     else:
         return redirect(url_for('login'))
 
