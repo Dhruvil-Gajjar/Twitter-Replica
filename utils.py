@@ -1,3 +1,5 @@
+import random
+
 from DB import client
 from Auth import db, request_user
 
@@ -29,6 +31,42 @@ def get_entities(entity_kind):
         data.append(data_dict)
 
     return list(filter(None, data))
+
+
+def get_all_tweets(entity_kind):
+    query = client.query(kind=entity_kind)
+    results = list(query.fetch())
+
+    data = list()
+    for obj in results:
+        data_dict = dict()
+        for key, value in obj.items():
+                data_dict[key] = value
+
+        data.append(data_dict)
+
+    for obj in data:
+        if obj.get("post_id"):
+            continue
+        else:
+            data.remove(obj)
+
+    return data
+
+
+def get_tweets(entity_kind):
+    data = list()
+    user_tweets = get_all_tweets(entity_kind)
+    data.extend(user_tweets)
+
+    user_data = get_profile_details(entity_kind)
+    for obj in user_data.get("following"):
+        following_tweets = get_all_tweets(obj.get("user_id"))
+        data.extend(following_tweets)
+
+    final_data = list(filter(None, data))
+    random.shuffle(final_data)
+    return final_data
 
 
 def get_post_details(post_id):
