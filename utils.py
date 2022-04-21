@@ -31,3 +31,19 @@ def get_profile_details(user_id):
     for obj in data:
         if obj.get("profile") == True:
             return obj
+
+
+def get_followings(user_id):
+    data = get_entities(user_id)
+
+    for obj in data:
+        if obj.get("profile") == True:
+            return obj.get("following")
+        
+        
+def get_followers(user_id):
+    data = get_entities(user_id)
+
+    for obj in data:
+        if obj.get("profile") == True:
+            return obj.get("followers")
