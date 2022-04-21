@@ -3,7 +3,7 @@ from datetime import date
 from flask import Flask, redirect, render_template, request, url_for
 from DB import client, datastore
 from Auth import auth, db, request_user
-from utils import get_profile_details, get_post_details, get_followers, get_followings
+from utils import get_profile_details, get_post_details, get_followers, get_followings, get_users_list
 
 app = Flask(__name__)
 today = date.today()
@@ -32,12 +32,13 @@ def signup():
     return render_template("signup.html")
 
 
-# Welcome page
+# Dashboard
 @app.route("/dashboard")
 def dashboard():
     if request_user["is_logged_in"]:
+        users_data = get_users_list()
         return render_template("dashboard.html", user_id=request_user["uid"], email=request_user["email"],
-                               name=request_user["name"])
+                               name=request_user["name"], users_data=users_data)
     else:
         return redirect(url_for('login'))
 
